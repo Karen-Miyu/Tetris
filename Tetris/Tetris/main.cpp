@@ -46,6 +46,7 @@ static bool lineToDelete = false;
 // Statistics
 static int level = 1;
 static int lines = 0;
+static int *points = 0;
 
 // Contadores
 static int gravityMovementCounter = 0; //Contador de movimentação para baixo
@@ -63,9 +64,9 @@ static void UpdateGame(void);       // Update game (one frame)
 static void DrawGame(void);         // Draw game (one frame)
 static void UpdateDrawFrame(void);  // Update and Draw (one frame)
 
-static bool Createpiece(); //Cria uma nova peça adicionando no topo do campo de jogo
+static bool Createpiece(); //Cria uma nova peça adicionando embaixo do campo de jogo
 static void GetRandompiece(); //Escolhe uma peça aleatoriamente para a próxima entrada
-static void ResolveFallingMovement(bool* detection, bool* pieceActive); //Resolve o movimento de queda da peça
+static void ResolveFallingMovement(bool* detection, bool* pieceActive); //Resolve o movimento da subida da peça
 static bool ResolveLateralMovement(); //Resolve o movimento lateral da peça
 static bool ResolveTurnMovement(); //Resolve o movimento de rotação da peça
 static void CheckDetection(bool* detection);  //Verifica se houve colisão entre as peças
@@ -251,10 +252,6 @@ void UpdateGame(void)
                 {
                     int deletedLines = 0;
                     deletedLines = DeleteCompleteLines(); //Armazena as linhas deletadas no tabuleiro
-                    if (deletedLines) {
-                        targetFPS--;
-                        SetTargetFPS(targetFPS);//Serve para acompanhar o progresso do usuário
-                    }
                     fadeLineCounter = 0;
                     lineToDelete = false;
 
@@ -367,7 +364,7 @@ void DrawGame(void)
             offset.y += SQUARE_SIZE;
         }
         DrawText("PRÓXIMO:", offset.x, offset.y - 100, 10, LIGHTGRAY);
-        DrawText(TextFormat("LINHAS:      %04i", lines), offset.x, offset.y + 20, 10, LIGHTGRAY);
+        DrawText(TextFormat("LINHAS:      %04i", points), offset.x, offset.y + 20, 10, LIGHTGRAY);
         DrawText("PRESSIONE 'P' PARA PAUSAR", offset.x, offset.y + 40, 11, LIGHTGRAY);
         DrawText("PRESSIONE 'E' PARA SAIR", offset.x, offset.y + 60, 11, LIGHTGRAY);
 
@@ -464,7 +461,7 @@ static void ResolveFallingMovement(bool* detection, bool* pieceActive)
             }
         }
     }
-    else    //Movendo a peça para baixo
+    else    //Movendo a peça para cima
     {
         for (int j = 1; j < Col - 1; j++)
         {
@@ -727,7 +724,7 @@ static void CheckCompletion(bool* lineToDelete)
             {
                 *lineToDelete = true;
                 calculator = 0;
-                // points++;
+                *points++;
 
                 // Mark the completed line
                 for (int z = 1; z < Row - 1; z++)
@@ -744,7 +741,7 @@ static int DeleteCompleteLines()
     int deletedLines = 0;
 
     // Erase the completed line
-    for (int j = 1; j <= Col - 2; j++)
+    for (int j = Col-2; j >= 0; j--)
     {
         while (grid[1][j] == FADING)
         {
@@ -753,7 +750,7 @@ static int DeleteCompleteLines()
                 grid[i][j] = EMPTY;
             }
 
-            for (int j2 = j + 1; j2 <= Col - 2; j2++)
+            for (int j2 = j+1; j2 <= Col - 2; j2++)
             {
                 for (int i2 = 1; i2 < Row - 1; i2++)
                 {
