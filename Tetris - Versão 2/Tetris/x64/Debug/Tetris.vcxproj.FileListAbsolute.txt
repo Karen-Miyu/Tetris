@@ -1,2 +1,0 @@
-C:\Users\Yuki_\source\repos\Tetris\Tetris\x64\Debug\Tetris.vcxproj.Up2Date
-C:\Users\pemiy\Downloads\Tetris-main\Tetris\Tetris\x64\Debug\Tetris.vcxproj.Up2Date
