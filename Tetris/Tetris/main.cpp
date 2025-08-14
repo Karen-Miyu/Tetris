@@ -27,8 +27,8 @@ static bool sair = false;
 
 // Matrizes
 static GridSquare grid[Row][Col]; //Representa o tamanho do campo do jogo
-static GridSquare piece[4][4]; //peça atual
-static GridSquare incomingPiece[4][4]; //próxima peça a entrar no jogo
+static GridSquare piece[4][4]; //Peça atual
+static GridSquare incomingPiece[4][4]; //Próxima peça a entrar no jogo
 
 // Estas variáveis mantêm o registo da posição da peça ativa
 static int piecePositionX = 0;
@@ -36,14 +36,13 @@ static int piecePositionY = 0;
 
 // Parâmetros do jogo
 static Color fadingColor;
-//static int fallingSpeed;           // In frames
 
-static bool beginPlay = true;      // This var is only true at the begining of the game, used for the first matrix creations
+static bool beginPlay = true;  // Está varriável é apenas true no início do jogo
 static bool pieceActive = false;
 static bool detection = false;
 static bool lineToDelete = false;
 
-// Statistics
+// Estatísticas do jogo
 static int level = 1;
 static int lines = 0;
 static int *points = 0;
@@ -59,19 +58,19 @@ static int fadeLineCounter = 0; //Contador das linhas que desapareceu
 static int gravitySpeed = 30; //Velocidade de queda
 int targetFPS = 60;
 
-static void InitGame(void);         // Initialize game
-static void UpdateGame(void);       // Update game (one frame)
-static void DrawGame(void);         // Draw game (one frame)
-static void UpdateDrawFrame(void);  // Update and Draw (one frame)
+static void InitGame(void);         // Inicializa o jogo
+static void UpdateGame(void);       // Atualiza o jogo
+static void DrawGame(void);         // Desenha o design do jogo
+static void UpdateDrawFrame(void);  // Atualiza e desenha
 
-static bool Createpiece(); //Cria uma nova peça adicionando embaixo do campo de jogo
-static void GetRandompiece(); //Escolhe uma peça aleatoriamente para a próxima entrada
-static void ResolveFallingMovement(bool* detection, bool* pieceActive); //Resolve o movimento da subida da peça
-static bool ResolveLateralMovement(); //Resolve o movimento lateral da peça
-static bool ResolveTurnMovement(); //Resolve o movimento de rotação da peça
-static void CheckDetection(bool* detection);  //Verifica se houve colisão entre as peças
-static void CheckCompletion(bool* lineToDelete); //Verifica se uma linha foi completa
-static int DeleteCompleteLines(); //Remove as linhas completadas
+static bool Createpiece(); // Cria uma nova peça adicionando embaixo do campo de jogo
+static void GetRandompiece(); // Escolhe uma peça aleatoriamente para a próxima entrada
+static void ResolveFallingMovement(bool* detection, bool* pieceActive); // Resolve o movimento da subida da peça
+static bool ResolveLateralMovement(); // Resolve o movimento lateral da peça
+static bool ResolveTurnMovement(); // Resolve o movimento de rotação da peça
+static void CheckDetection(bool* detection);  // Verifica se houve colisão entre as peças
+static void CheckCompletion(bool* lineToDelete); // Verifica se uma linha foi completa
+static int DeleteCompleteLines(); // Remove as linhas completadas
 
 int main(void)
 {
@@ -88,7 +87,7 @@ int main(void)
 
     SetTargetFPS(targetFPS);
 
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!WindowShouldClose())    // Verifica se o jogador clicou na tecla E ou ESC para sair do jogo
     {
         if (IsKeyPressed('E')) sair = !sair;
 
@@ -104,15 +103,15 @@ int main(void)
     UnloadTexture(bgTexture);
     UnloadTexture(bgTexture);
 
-    CloseWindow();        // Close window and OpenGL context
+    CloseWindow();        // Fecha a janela e o contexto OpenGL
 
     return 0;
 }
 
-// Initialize game variables
+// Inicialização das variáveis do jogo
 void InitGame(void)
 {
-    // Initialize game statistics
+    // Inicialização das estatística do jogo
     level = 1;
     lines = 0;
 
@@ -128,7 +127,7 @@ void InitGame(void)
     detection = false;
     lineToDelete = false;
 
-    // Counters
+    // Contadores
     gravityMovementCounter = 0;
     lateralMovementCounter = 0;
     turnMovementCounter = 0;
@@ -147,7 +146,7 @@ void InitGame(void)
         }
     }
 
-    //Permite deixar a matriz vazio para inicializar corretamente uma nova peça aleatoriamente, que ocupará o mesmo espaço que ocupou a anterior
+    // Permite deixar a matriz vazio para inicializar corretamente uma nova peça aleatoriamente, que ocupará o mesmo espaço que ocupou a anterior
     for (int i = 0; i < 4; i++)
     {
         for (int j = 0; j < 4; j++)
@@ -157,7 +156,7 @@ void InitGame(void)
     }
 }
 
-// Update game (one frame)
+// Atualização do jogo
 void UpdateGame(void)
 {
     if (!gameOver)
@@ -170,61 +169,59 @@ void UpdateGame(void)
             {
                 if (!pieceActive)
                 {
-                    // Get another piece
+                    // Cria outra peça
                     pieceActive = Createpiece();
 
-                    // We leave a little time before starting the fast falling down
                     fastFallMovementCounter = 0;
                 }
-                else    // Piece falling
+                else    // Peça caindo
                 {
-                    // Counters update
+                    // Atualização de contadores
                     fastFallMovementCounter++;
                     gravityMovementCounter++;
                     lateralMovementCounter++;
                     turnMovementCounter++;
 
-                    // We make sure to move if we've pressed the key this frame
+                    // Movimentação das peças
                     if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT)) lateralMovementCounter = LATERAL_SPEED;
                     if (IsKeyPressed(KEY_DOWN)) turnMovementCounter = TURNING_SPEED;
 
-                    // Fall down
+                    // Subindo mais rápido
                     if (IsKeyDown(KEY_UP) && (fastFallMovementCounter >= FAST_FALL_AWAIT_COUNTER))
                     {
-                        // We make sure the piece is going to fall this frame
                         gravityMovementCounter += gravitySpeed;
                     }
 
                     if (gravityMovementCounter >= gravitySpeed)
                     {
-                        // Basic falling movement
+                        // Movimento básico de subida
                         CheckDetection(&detection);
 
-                        // Check if the piece has collided with another piece or with the boundings
+                        // Verificar se o pedaõ é colidido com outro pedaço ou com a borda
                         ResolveFallingMovement(&detection, &pieceActive);
 
-                        // Check if we fullfilled a line and if so, erase the line and pull down the the lines above
+                        // Verificar se a linha é preenchida completamente, se sim, a linha  é apagada e é puxado a linha debaixo para cima
                         CheckCompletion(&lineToDelete);
 
                         gravityMovementCounter = 0;
                     }
 
-                    // Move laterally at player's will
+                    // Movimentação para os lados da peça
                     if (lateralMovementCounter >= LATERAL_SPEED)
                     {
-                        // Update the lateral movement and if success, reset the lateral counter
+                        // Atualização do movimento lateral e se sucesso, reseta o contador lateral
                         if (!ResolveLateralMovement()) lateralMovementCounter = 0;
                     }
 
-                    // Turn the piece at player's will
+                    // Gira a peça
                     if (turnMovementCounter >= TURNING_SPEED)
                     {
-                        // Update the turning movement and reset the turning counter
+                        // Atualização do movimento de girar e reseta o contador
                         if (ResolveTurnMovement()) turnMovementCounter = 0;
                     }
                 }
 
-                // Game over logic
+                // Lógico de fim de jogo
                 //Verifica se as duas linhas do top estão cheias
                 for (int j = 18; j < 20; j++)
                 {
@@ -240,18 +237,18 @@ void UpdateGame(void)
             }
             else
             {
-                // Animation when deleting lines
+                // Animação quando deletado as linha(s)
                 fadeLineCounter++;
 
-                //Animação do fade-out da remoção da linha
+                // Animação do fade-out da remoção da linha
                 if (fadeLineCounter % 8 < 4) fadingColor = DARKBLUE;
                 else fadingColor = MAROON;
 
-                //Coloca um certo tempo para a realização do fade-out 
+                // Coloca um certo tempo para a realização do fade-out 
                 if (fadeLineCounter >= FADING_TIME)
                 {
                     int deletedLines = 0;
-                    deletedLines = DeleteCompleteLines(); //Armazena as linhas deletadas no tabuleiro
+                    deletedLines = DeleteCompleteLines(); // Armazena as linhas deletadas no tabuleiro
                     fadeLineCounter = 0;
                     lineToDelete = false;
 
@@ -270,24 +267,24 @@ void UpdateGame(void)
     }
 }
 
-// Draw game (one frame)
+// Desenho do jogo
 void DrawGame(void)
 {
     BeginDrawing();
 
-    ClearBackground(RAYWHITE); //Fundo do jogo
+    ClearBackground(RAYWHITE); // Fundo do jogo
 
     if (!gameOver)
     {
-        // Draw gameplay area
-        Vector2 offset; //Representa um vetor bidimensional
+        // Desenho da área de jogo
+        Vector2 offset; // Representa um vetor bidimensional
 
-        //Antes do -50, está centralizando o grid. Com o -50, está movendo para a esquerda
+        // Antes do -50, está centralizando o grid. Com o -50, está movendo para a esquerda
         offset.x = screenWidth / 2 - (Row * SQUARE_SIZE / 2) - 50;
         // Antes do + SQUARE_SIZE*2, está centralizando na vertical. Depois do + ... está ajustando a posição para cima
         offset.y = screenHeight / 2 - ((Col - 1) * SQUARE_SIZE / 2) + SQUARE_SIZE * 2;
 
-        offset.y -= 50;     // NOTE: Harcoded position!
+        offset.y -= 50;    
 
         int controller = offset.x;
 
@@ -295,8 +292,7 @@ void DrawGame(void)
         {
             for (int i = 0; i < Row; i++)
             {
-                // Draw each square of the grid
-                //Desenha as linhas do grid
+                // Desenha as linhas do grid
                 if (grid[i][j] == EMPTY)
                 {
                     DrawLine(offset.x, offset.y, offset.x + SQUARE_SIZE, offset.y, GRAY);
@@ -305,19 +301,19 @@ void DrawGame(void)
                     DrawLine(offset.x, offset.y + SQUARE_SIZE, offset.x + SQUARE_SIZE, offset.y + SQUARE_SIZE, GRAY);
                     offset.x += SQUARE_SIZE;
                 }
-                //Pintará de 'DARKBLUE' os tetrinos já parados
+                // Pintará de 'DARKBLUE' os tetrinos já parados
                 else if (grid[i][j] == FULL)
                 {
                     DrawRectangle(offset.x, offset.y, SQUARE_SIZE, SQUARE_SIZE, DARKGRAY);
                     offset.x += SQUARE_SIZE;
                 }
-                //Pintará de 'BLUE' os tetrinos em movimento
+                // Pintará de 'BLUE' os tetrinos em movimento
                 else if (grid[i][j] == MOVING)
                 {
                     DrawRectangle(offset.x, offset.y, SQUARE_SIZE, SQUARE_SIZE, BLUE);
                     offset.x += SQUARE_SIZE;
                 }
-                //Pintará de 'SKYBLUE' os tetrinos em movimento
+                // Pintará de 'SKYBLUE' os tetrinos em movimento
                 else if (grid[i][j] == BLOCK)
                 {
                     DrawRectangle(offset.x, offset.y, SQUARE_SIZE, SQUARE_SIZE, BLACK);
@@ -334,13 +330,13 @@ void DrawGame(void)
             offset.y += SQUARE_SIZE;
         }
 
-        // Draw incoming piece (hardcoded)
+        // Desenha as peças de entrada
         offset.x = 500;
         offset.y = 45;
 
         int controler = offset.x;
 
-        //desenha as peças do jogo
+        // Desenha as peças do jogo
         for (int j = 0; j < 4; j++)
         {
             for (int i = 0; i < 4; i++)
@@ -375,7 +371,7 @@ void DrawGame(void)
     EndDrawing();
 }
 
-// Update and Draw (one frame)
+// Atualização e desenho
 void UpdateDrawFrame(void)
 {
     UpdateGame();
@@ -387,7 +383,7 @@ static bool Createpiece()
     piecePositionX = (int)((Row - 4) / 2);
     piecePositionY = Col - 4;
 
-    // If the game is starting and you are going to create the first piece, we create an extra one
+    // Se o jogo iniciar e a peça de entrada já for criada, uma outra peça será gerada
     if (beginPlay)
     {
         GetRandompiece();
@@ -400,11 +396,11 @@ static bool Createpiece()
             {
                 for (int j = 0; j < 4; j++)
                 {
-                    piece[i][j] = incomingPiece[i][j]; //Matriz inicializada com células vazias
+                    piece[i][j] = incomingPiece[i][j]; // Matriz inicializada com células vazias
                 }
             }
 
-            //A peça em movimento, ou seja em atuação no game, são copiados para um local no grid[][], campo do jogo.
+            // A peça em movimento, ou seja em atuação no game, são copiados para um local no grid[][], campo do jogo.
             GetRandompiece();
 
             for (int i = piecePositionX; i < piecePositionX + 4; i++)
@@ -445,7 +441,7 @@ static void GetRandompiece()
 
 static void ResolveFallingMovement(bool* detection, bool* pieceActive)
 {
-    // If we finished moving this piece, we stop it
+    // Se finalizado o movimento das peças, então é parado 
     if (*detection)
     {
         for (int j = Col-2; j >= 0; j--)
@@ -461,7 +457,7 @@ static void ResolveFallingMovement(bool* detection, bool* pieceActive)
             }
         }
     }
-    else    //Movendo a peça para cima
+    else    // Movendo a peça para cima
     {
         for (int j = 1; j < Col - 1; j++)
         {
@@ -483,31 +479,31 @@ static bool ResolveLateralMovement()
 {
     bool collision = false;
 
-    // Piece movement
+    // Peça em movimentação
 
     if (IsKeyDown(KEY_LEFT))        // Move left
     {
-        // Check if is possible to move to left
+        // Verificar se é possível mover para a esquerda 
         for (int j = Col - 2; j >= 0; j--)
         {
             for (int i = 1; i < Row - 1; i++)
             {
                 if (grid[i][j] == MOVING)
                 {
-                    // Check if we are touching the left wall or we have a full square at the left
+                    // Verificar se está tocando na borda à esquerda ou se possui um quadrado completo à esquerda 
                     if ((i - 1 == 0) || (grid[i - 1][j] == FULL)) collision = true; break;
                 }
             }
         }
 
-        // If able, move left
+        // Se capaz, mover para a esquerda
         if (!collision)
         {
             for (int j = Col - 2; j >= 0; j--)
             {
-                for (int i = 1; i < Row - 1; i++)             // We check the matrix from left to right
+                for (int i = 1; i < Row - 1; i++)            
                 {
-                    // Move everything to the left
+                    // Movemr tudo para a esquerda
                     if (grid[i][j] == MOVING)
                     {
                         grid[i - 1][j] = MOVING;
@@ -519,16 +515,16 @@ static bool ResolveLateralMovement()
             piecePositionX--;
         }
     }
-    else if (IsKeyDown(KEY_RIGHT))  // Move right
+    else if (IsKeyDown(KEY_RIGHT))  // Mover para a direita
     {
-        // Check if is possible to move to right
+        // Verificar se é possível mover para a direita
         for (int j = Col - 2; j >= 0; j--)
         {
             for (int i = 1; i < Row - 1; i++)
             {
                 if (grid[i][j] == MOVING)
                 {
-                    // Check if we are touching the right wall or we have a full square at the right
+                    // Verificar se está tocando na borda à direita ou se possui um quadrado completo à direita 
                     if ((i + 1 == Row - 1) || (grid[i + 1][j] == FULL))
                     {
                         collision = true;
@@ -539,14 +535,14 @@ static bool ResolveLateralMovement()
             }
         }
 
-        // If able move right
+        // Se capaz mover para a direita
         if (!collision)
         {
             for (int j = Col - 2; j >= 0; j--)
             {
-                for (int i = Row - 1; i >= 1; i--)             // We check the matrix from right to left
+                for (int i = Row - 1; i >= 1; i--)             
                 {
-                    // Move everything to the right
+                    // Mover tudo para a direita
                     if (grid[i][j] == MOVING)
                     {
                         grid[i + 1][j] = MOVING;
@@ -562,16 +558,16 @@ static bool ResolveLateralMovement()
     return collision;
 }
 
-//Movimento de rotação
+// Movimento de rotação
 static bool ResolveTurnMovement()
 {
-    // Input for turning the piece
+    // Entrada para a rotação da peça
     if (IsKeyDown(KEY_DOWN))
     {
         GridSquare aux;
         bool checker = false;
 
-        // Check all turning possibilities
+        // Verificar todas as possibilidades de rotação
         if ((grid[piecePositionX + 3][piecePositionY] == MOVING) &&
             (grid[piecePositionX][piecePositionY] != EMPTY) &&
             (grid[piecePositionX][piecePositionY] != MOVING)) checker = true;
@@ -636,7 +632,7 @@ static bool ResolveTurnMovement()
             (grid[piecePositionX + 2][piecePositionY + 2] != EMPTY) &&
             (grid[piecePositionX + 2][piecePositionY + 2] != MOVING)) checker = true;
         
-        //Gira a peça 90º no sentido horário
+        // Gira a peça 90º no sentido horário
         if (!checker)
         {
             aux = piece[0][0];
@@ -675,7 +671,7 @@ static bool ResolveTurnMovement()
             }
         }
 
-        //Atualiza a posição da peça no grid do jogo
+        // Atualiza a posição da peça no grid do jogo
         for (int i = piecePositionX; i < piecePositionX + 4; i++)
         {
             for (int j = piecePositionY; j < piecePositionY + 4; j++)
@@ -713,20 +709,20 @@ static void CheckCompletion(bool* lineToDelete)
         calculator = 0;
         for (int i = 1; i < Row - 1; i++)
         {
-            // Count each square of the line
+            // Conte cada quadrado da linha
             if (grid[i][j] == FULL)
             {
                 calculator++;
             }
 
-            // Check if we completed the whole line
+            // Verificar se toda a linha é completada
             if (calculator == Row - 2)
             {
                 *lineToDelete = true;
                 calculator = 0;
                 *points++;
 
-                // Mark the completed line
+                // Marcar a linha completada
                 for (int z = 1; z < Row - 1; z++)
                 {
                     grid[z][j] = FADING;
@@ -772,4 +768,5 @@ static int DeleteCompleteLines()
     }
 
     return deletedLines;
+
 }
