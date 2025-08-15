@@ -20,4 +20,4 @@ E rodando na IDE do Visual Studio.
 </ol>
 
 ## Visualização do Programa
-<img src="https://raw.githubusercontent.com/Karen-Miyu/Tetris/refs/heads/main/src/img_tetrs_game.png" alt="imagem do projeto" style="display: inline-block;">
+<img src="https://github.com/Karen-Miyu/Tetris/blob/main/src/Tetris.gif?raw=true" alt="imagem do projeto" style="display: inline-block; width: 40rem">
